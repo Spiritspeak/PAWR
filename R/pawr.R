@@ -198,7 +198,7 @@ QueryPushshift<-function(type=c("comment","submission","subreddit"),as.df=T,purg
   }
 
   if(metadata){ argstring%<>%paste0("&metadata=true")}
-  if(!is.null(q)){ argstring%<>%paste0("&q=",URLencode(q))}
+  if(!is.null(q)){ argstring%<>%paste0("&q=",URLencode(paste(q,collapse="|")))}
 
   reqstr<-paste0("https://api.pushshift.io/reddit/search/",type,"?size=",size,argstring)
 
