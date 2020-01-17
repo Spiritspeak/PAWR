@@ -131,10 +131,10 @@ GetTotalQuerySize<-function(...){
 }
 
 .checkfields<-function(fields,type){
-  okfields <-.psparams[.psparams$endpoint%in%c("all",type),]
+  okfields <-.psparams[.psparams$endpoint%in%c("all",type),]$parameter
   #add to-be-ignored words
-  okfields%<>%c("before","after","timescope","fields","aggs")
-  except <- which(!(fields %in% okfields$parameter))
+  okfields<-c(okfields,"before","after","timescope","fields","aggs")
+  except <- which(!(fields %in% okfields))
   if(length(except)>0){
     stop("The following parameter(s) are unknown to pushshift.io: ",paste(fields[except],collapse=" "),
          "\nUse PSParams() to see all available parameters.")
