@@ -1,11 +1,8 @@
 Package: PAWR
 Title: Pushshift API Wrapper for R
 Version: 0.0.1
-Authors@R: 
-    person(given = "Sercan",
-           family = "Kahveci",
-           role = c("aut", "cre"),
-           email = "sercan.kahveci@@sbg.ac.at")
+Author: Sercan Kahveci
+Authors@R: person(given = "Sercan", family = "Kahveci", role = c("aut", "cre"), email = "sercan.kahveci@sbg.ac.at")
 Description: Easily scrape reddit content using the pushshift.io API. PAWR formats your queries, takes breaks when exceeding the rate limit, and outputs the data in a usable format.
 BugReports: https://github.com/Spiritspeak/PAWR/issues
 Depends: R (>= 3.6.1), magrittr, dplyr, httr
