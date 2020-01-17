@@ -17,7 +17,7 @@ NULL
 
 .onAttach<-function(libname,pkgname){
   .rlims<<-NULL
-  refreshPAWR(verbose=F)
+  try(refreshPAWR(verbose=F))
   packageStartupMessage("Thank you for loading the Pushshift API Wrapper for R (PAWR).")
   #add pushshift status message here
 }
@@ -50,8 +50,8 @@ refreshPAWR<-function(verbose=T){
 
   #Rate limit
   reqinfo<-NULL
-  try(reqinfo<-RETRY("GET",url="http://api.pushshift.io/meta",timeout(10),
-                     user_agent(getOption("PAWR.UserAgent")))%>%content())
+  reqinfo<-RETRY("GET",url="http://api.pushshift.io/meta",timeout(10),
+                     user_agent(getOption("PAWR.UserAgent")))%>%content()
   if(is.null(reqinfo)){
     stop("Pushshift.io is down, or you are not connected to the internet.")
   }
@@ -59,8 +59,8 @@ refreshPAWR<-function(verbose=T){
   .msgWhen(when=verbose, "Rate limit is: ",reqinfo$server_ratelimit_per_minute," requests per minute.")
 
   #Get endpoints
-  try(pts<-RETRY("GET","https://pushshift.io/api-parameters/",timeout(10),
-                 user_agent(getOption("PAWR.UserAgent")))%>%content())
+  pts<-RETRY("GET","https://pushshift.io/api-parameters/",timeout(10),
+                 user_agent(getOption("PAWR.UserAgent")))%>%content()
   .psparams<<-data.frame(parameter  =pts%>%rvest::html_nodes(".column-1")%>%rvest::html_text()%>%trimws,
                          type       =pts%>%rvest::html_nodes(".column-2")%>%rvest::html_text()%>%trimws,
                          endpoint   =pts%>%rvest::html_nodes(".column-3")%>%rvest::html_text()%>%trimws,
