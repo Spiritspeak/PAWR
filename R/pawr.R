@@ -7,6 +7,7 @@
 #'  \item{\code{PAWR.VerboseGet} designates whether the main data retrieval function should produce verbose output. Useful when debugging.}
 #'  \item{\code{PAWR.VerbosePaginate} designates whether pagination functions should produce verbose output.}
 #'  \item{\code{PAWR.UserAgent} is the useragent used by PAWR when querying pushshift.io.}
+#'  \item{\code{PAWR.QuerySize} determines how many entries a pushshift query maximally returns.}
 #' }
 NULL
 
@@ -22,128 +23,6 @@ NULL
   #add pushshift status message here
 }
 
-#UtilityFunctions ####
-#' @title Utility Functions
-#' @name UtilityFunctions
-#' @details
-#' \code{refreshPAWR()} re-fetches the rate limit and parameter list from pushshift.io
-#' \code{list2df()} converts a list of lists (pushshift's preferred output format) to a data.frame
-#' \code{unevenrbind()} binds two data.frames together by row, even if their columns do not match
-#' \code{PSParams()} returns all available pushshift.io parameters for a given data type; defaults to all data types.
-#' \code{GetTotalQuerySize()} gives the total amount of content that matches the provided parameters
-NULL
-
-#' @param verbose Logical. Produce verbose output or not.
-#' @export
-#' @name UtilityFunctions
-refreshPAWR<-function(verbose=T){
-  #Settings setup
-  if(is.null(getOption("PAWR.VerboseGet"))){
-    options(PAWR.VerboseGet=F)
-  }
-  if(is.null(getOption("PAWR.VerbosePaginate"))){
-    options(PAWR.VerbosePaginate=F)
-  }
-  if(is.null(getOption("PAWR.UserAgent"))){
-    options(PAWR.UserAgent="Pushshift API Wrapper for R (PAWR)")
-  }
-
-  #Rate limit
-  reqinfo<-NULL
-  reqinfo<-RETRY("GET",url="http://api.pushshift.io/meta",timeout(10),
-                     user_agent(getOption("PAWR.UserAgent")))%>%content()
-  if(is.null(reqinfo)){
-    stop("Pushshift.io is down, or you are not connected to the internet.")
-  }
-  .rlims<<-rep(0,reqinfo$server_ratelimit_per_minute)
-  .msgWhen(when=verbose, "Rate limit is: ",reqinfo$server_ratelimit_per_minute," requests per minute.")
-
-  #Get endpoints
-  pts<-RETRY("GET","https://pushshift.io/api-parameters/",timeout(10),
-                 user_agent(getOption("PAWR.UserAgent")))%>%content()
-  .psparams<<-data.frame(parameter  =pts%>%rvest::html_nodes(".column-1")%>%rvest::html_text()%>%trimws,
-                         type       =pts%>%rvest::html_nodes(".column-2")%>%rvest::html_text()%>%trimws,
-                         endpoint   =pts%>%rvest::html_nodes(".column-3")%>%rvest::html_text()%>%trimws,
-                         description=pts%>%rvest::html_nodes(".column-4")%>%rvest::html_text()%>%trimws,
-                         stringsAsFactors = F)[-1,]
-  .psparams$endpoint<<-gsub(" Endpoints?","", .psparams$endpoint) %>% tolower
-}
-
-.checkRateLimit<-function(){
-  return((as.numeric(Sys.time())-.rlims[length(.rlims)]))
-}
-
-.bumpRateLimit<-function(){
-  .rlims<<-c(as.numeric(Sys.time()),.rlims[1:(length(.rlims)-1)])
-}
-
-#' @param li List of lists, to be converted to \code{data.frame}.
-#' @export
-#' @name UtilityFunctions
-list2df<-function(li){
-  lnames<-lapply(li,FUN=function(x){names(unlist((x)))})%>%unlist%>%unique
-  newdf<-setNames(data.frame(matrix(ncol = length(lnames), nrow = 0),stringsAsFactors=F), lnames)
-  for(i in 1:length(li)){
-    rowdat<-li[[i]]%>%unlist%>%t%>%as.data.frame(stringsAsFactors=F)
-    rowdat[,setdiff(names(newdf), names(rowdat))] <- NA
-    newdf[,setdiff(names(rowdat), names(newdf))] <- NA
-    newdf<-rbind(newdf,rowdat)
-  }
-  newdf
-}
-
-#' @param df1,df2 To-be-merged data frames with an uneven number of columns and/or nonmatching column names
-#' @export
-#' @name UtilityFunctions
-unevenrbind<-function(df1,df2){
-  rbind(
-    data.frame(c(df1, sapply(setdiff(names(df2), names(df1)), function(x) NA)),stringsAsFactors=F),
-    data.frame(c(df2, sapply(setdiff(names(df1), names(df2)), function(x) NA)),stringsAsFactors=F),
-    stringsAsFactors=F
-  )
-}
-
-#' @param type Character. The type of content that parameters are being looked up for (comment, submission, subreddit). Defaults to all.
-#' @export
-#' @name UtilityFunctions
-PSParams<-function(type=c("all","comment","submission","subreddit")){
-  type<-match.arg(type)
-  print(type)
-  if(type=="all"){
-    out<-.psparams
-  }else{
-    out<-.psparams[.psparams$endpoint%in%c("all",type),]
-  }
-  return(out)
-}
-
-#' @param ... For GetTotalQuerySize, any parameters to be sent to pushshift.io
-#' @export
-#' @name UtilityFunctions
-GetTotalQuerySize<-function(...){
-  args<-list(...)
-  args$size<-1
-  args$metadata<-T
-  args$verbose<-F
-  args$as.df=F
-  out<-do.call(QueryPushshift,args)
-  return(out$metadata$total_results)
-}
-
-.checkfields<-function(fields,type){
-  okfields <-.psparams[.psparams$endpoint%in%c("all",type),]$parameter
-  #add to-be-ignored words
-  okfields<-c(okfields,"before","after","timescope","fields","aggs")
-  except <- which(!(fields %in% okfields))
-  if(length(except)>0){
-    stop("The following parameter(s) are unknown to pushshift.io: ",paste(fields[except],collapse=" "),
-         "\nUse PSParams() to see all available parameters.")
-  }else{ return(TRUE)  }
-}
-
-.msgWhen <-function(...,when=T){
-  if(when){message(...)}
-}
 
 #Main function ####
 #' @title Query data from pushshift.io
@@ -168,8 +47,8 @@ GetTotalQuerySize<-function(...){
 #' #See in which subreddits the word "gamer" is used the most
 #' GetPSData(q="Gamer",aggs="subreddit")
 QueryPushshift<-function(type=c("comment","submission","subreddit"),as.df=T,purge=F,verbose=getOption("PAWR.VerboseGet"),
-                    size=500,aggs=c("none","author","link_id","created_utc","subreddit"),agg_size=0,q=NULL,metadata=TRUE,
-                    ...){
+                    size=getOption("PAWR.QuerySize"),aggs=c("none","author","link_id","created_utc","subreddit"),
+                    agg_size=0,q=NULL,metadata=TRUE,...){
 
   type<-match.arg(type)
   aggs<-match.arg(aggs)
@@ -191,8 +70,8 @@ QueryPushshift<-function(type=c("comment","submission","subreddit"),as.df=T,purg
       size<-0
     }
     if(missing(agg_size)){
-      .msgWhen("Aggs size unspecified, defaulting to 500",when=verbose)
-      agg_size<-500
+      .msgWhen("Aggs size unspecified, defaulting to ",getOption("PAWR.QuerySize"),when=verbose)
+      agg_size<-getOption("PAWR.QuerySize")
     }
     argstring%<>%paste0("&aggs=",aggs,"&agg_size=",agg_size)
   }
@@ -310,7 +189,7 @@ PaginateData<-function(type=c("comment","submission","subreddit"),verbose=getOpt
     }
     lastdate<-max(as.numeric(output$created_utc))-1
     #message("lastdate: ",lastdate,", after: ",after)
-    if(nrow(loopoutput)<500){ break; }
+    if(nrow(loopoutput)<getOption("PAWR.QuerySize")){ break; }
   }
   #loopoutput
   output[(output$created_utc > after) & (output$created_utc < before) & !duplicated(output),]
