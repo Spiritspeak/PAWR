@@ -4,11 +4,16 @@
 \alias{PaginateAggs}
 \title{Paginate aggs}
 \usage{
-PaginateAggs(type = c("comment", "submission", "subreddit"),
+PaginateAggs(
+  type = c("comment", "submission", "subreddit"),
   aggs = c("author", "link_id", "created_utc", "subreddit"),
   paginate_by = c("date", "author"),
-  before = round(as.numeric(Sys.time())), after = NULL,
-  timescope = NULL, verbose = getOption("PAWR.VerbosePaginate"), ...)
+  before = round(as.numeric(Sys.time())),
+  after = NULL,
+  timescope = NULL,
+  verbose = getOption("PAWR.VerbosePaginate"),
+  ...
+)
 }
 \arguments{
 \item{type}{Type of requested content. Can be \code{comment}, \code{submission}, or \code{subreddit}.}
@@ -20,6 +25,9 @@ PaginateAggs(type = c("comment", "submission", "subreddit"),
 \item{verbose}{Should output be verbose? Defaults to a global option which can be set with \code{options(PAWR.VerbosePaginate=TRUE/FALSE)}.}
 
 \item{...}{Other valid parameters. Run \code{PSParams()} to see all valid parameters and their descriptions.}
+}
+\value{
+
 }
 \description{
 Send multiple queries to pushshift.io to get all available information for your request.

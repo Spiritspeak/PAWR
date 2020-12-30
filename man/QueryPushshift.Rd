@@ -4,10 +4,18 @@
 \alias{QueryPushshift}
 \title{Query data from pushshift.io}
 \usage{
-QueryPushshift(type = c("comment", "submission", "subreddit"),
-  as.df = T, purge = F, verbose = getOption("PAWR.VerboseGet"),
-  size = 500, aggs = c("none", "author", "link_id", "created_utc",
-  "subreddit"), agg_size = 0, q = NULL, metadata = TRUE, ...)
+QueryPushshift(
+  type = c("comment", "submission", "subreddit"),
+  as.df = T,
+  purge = F,
+  verbose = getOption("PAWR.VerboseGet"),
+  size = getOption("PAWR.QuerySize"),
+  aggs = c("none", "author", "link_id", "created_utc", "subreddit"),
+  agg_size = 0,
+  q = NULL,
+  metadata = TRUE,
+  ...
+)
 }
 \arguments{
 \item{type}{Type of requested content. Can be \code{comment}, \code{submission}, or \code{subreddit}.}

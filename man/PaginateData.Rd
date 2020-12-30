@@ -4,10 +4,14 @@
 \alias{PaginateData}
 \title{Paginate PushShift Data}
 \usage{
-PaginateData(type = c("comment", "submission", "subreddit"),
+PaginateData(
+  type = c("comment", "submission", "subreddit"),
   verbose = getOption("PAWR.VerbosePaginate"),
-  before = round(as.numeric(Sys.time())), after = NULL,
-  timescope = NULL, ...)
+  before = round(as.numeric(Sys.time())),
+  after = NULL,
+  timescope = NULL,
+  ...
+)
 }
 \arguments{
 \item{type}{Type of requested content. Can be \code{comment}, \code{submission}, or \code{subreddit}.}
@@ -24,6 +28,9 @@ When argument \code{after} is used, \code{timescope} causes the current function
 When argument \code{before} is used, \code{timescope} causes the current function to fetch data that was created up to \emph{N} seconds before the timestamp defined in \code{before}}
 
 \item{...}{Other valid parameters. Run \code{PSParams()} to see all valid parameters and their descriptions.}
+}
+\value{
+
 }
 \description{
 Send multiple queries to pushshift.io, to be able to get all data within a given date range.

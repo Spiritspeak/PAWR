@@ -3,17 +3,14 @@
 \docType{package}
 \name{PAWR}
 \alias{PAWR}
-\alias{PAWR-package}
 \title{PAWR: The Pushshift API Wrapper for R.}
-\description{
-PAWR: The Pushshift API Wrapper for R.
-}
 \section{Package options}{
 
 \itemize{
  \item{\code{PAWR.VerboseGet} designates whether the main data retrieval function should produce verbose output. Useful when debugging.}
  \item{\code{PAWR.VerbosePaginate} designates whether pagination functions should produce verbose output.}
  \item{\code{PAWR.UserAgent} is the useragent used by PAWR when querying pushshift.io.}
+ \item{\code{PAWR.QuerySize} determines how many entries a pushshift query maximally returns.}
 }
 }
 
