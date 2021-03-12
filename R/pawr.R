@@ -6,6 +6,7 @@
 #' \itemize{
 #'  \item{\code{PAWR.VerboseGet} designates whether the main data retrieval function should produce verbose output. Useful when debugging.}
 #'  \item{\code{PAWR.VerbosePaginate} designates whether pagination functions should produce verbose output.}
+#'  \item{\code{PAWR.VerboseRateLimit} designates whether rate limit-induced pauses should be reported.}
 #'  \item{\code{PAWR.UserAgent} is the useragent used by PAWR when querying pushshift.io.}
 #'  \item{\code{PAWR.QuerySize} determines how many entries a pushshift query maximally returns.}
 #' }
@@ -45,7 +46,7 @@ NULL
 #' QueryPushshift(author="spez",after=0,size=1)
 #'
 #' #See in which subreddits the word "gamer" is used the most
-#' GetPSData(q="Gamer",aggs="subreddit")
+#' QueryPushshift(q="Gamer",aggs="subreddit")
 QueryPushshift<-function(type=c("comment","submission","subreddit"),as.df=T,purge=F,verbose=getOption("PAWR.VerboseGet"),
                     size=getOption("PAWR.QuerySize"),aggs=c("none","author","link_id","created_utc","subreddit"),
                     agg_size=0,q=NULL,metadata=TRUE,...){
@@ -82,12 +83,7 @@ QueryPushshift<-function(type=c("comment","submission","subreddit"),as.df=T,purg
   reqstr<-paste0("https://api.pushshift.io/reddit/search/",type,"?size=",size,argstring)
 
   #Check the rate limit.
-  rlim<-.checkRateLimit()
-  if(rlim<60){
-    .msgWhen("Rate limit exceeded! Sleeping until requests can be made again.",when=verbose)
-    Sys.sleep(60.1-rlim)
-  }
-  .bumpRateLimit()
+  .awaitRateLimit()
 
   #try getting the data
   .msgWhen(when=verbose,"Getting data from URL ",reqstr)
@@ -98,7 +94,6 @@ QueryPushshift<-function(type=c("comment","submission","subreddit"),as.df=T,purg
     deldposts<-sapply(reqinfo$data,FUN=function(x){x$author})!="[deleted]"
     reqinfo$data<-reqinfo$data[deldposts]
   }
-
 
   #convert list to data.frame
   if(as.df){
@@ -155,9 +150,10 @@ QueryPushshift<-function(type=c("comment","submission","subreddit"),as.df=T,purg
 #'
 #' @examples
 #' #Get all comments from today containing the word "chocolate"
-#' PaginateData(timescope=24 * 60 * 60,q="chocolate")
-PaginateData<-function(type=c("comment","submission","subreddit"),verbose=getOption("PAWR.VerbosePaginate"),
-                        before=round(as.numeric(Sys.time())),after=NULL,timescope=NULL,
+#' PaginateData(timescope=7 * 24 * 60 * 60,q="chocolate")
+PaginateData<-function(type=c("comment","submission","subreddit"),
+                       verbose=getOption("PAWR.VerbosePaginate"),
+                        before=now(),after=0,timescope=NULL,
                         ...){
   args<-list(...)
   .checkfields(names(args),type)
@@ -370,3 +366,21 @@ PaginateAggsByAuthor<-function(type=c("comment","submission","subreddit"),verbos
   output%<>%group_by(key)%>%summarise(doc_count=sum(as.numeric(doc_count)))%>%group_by()%>%arrange(desc(doc_count))
   return(output)
 }
+
+
+#' @describeIn QueryPushshift Query pushshift's meta endpoint
+#' @export
+#'
+#' @examples
+#' QueryPushshiftMeta()$client_user_agent
+QueryPushshiftMeta<-function(){
+  .awaitRateLimit(verbose)
+  res<-RETRY("GET","http://api.pushshift.io/meta",timeout(10),
+             user_agent(getOption("PAWR.UserAgent"))) %>% content(encoding="UTF-8")
+  return(res)
+}
+
+
+
+
+

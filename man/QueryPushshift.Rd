@@ -2,6 +2,7 @@
 % Please edit documentation in R/pawr.R
 \name{QueryPushshift}
 \alias{QueryPushshift}
+\alias{QueryPushshiftMeta}
 \title{Query data from pushshift.io}
 \usage{
 QueryPushshift(
@@ -16,6 +17,8 @@ QueryPushshift(
   metadata = TRUE,
   ...
 )
+
+QueryPushshiftMeta()
 }
 \arguments{
 \item{type}{Type of requested content. Can be \code{comment}, \code{submission}, or \code{subreddit}.}
@@ -42,10 +45,16 @@ If \code{as.df=T}, returns a data.frame; else, returns a list.
 \description{
 Query data from pushshift.io
 }
+\section{Functions}{
+\itemize{
+\item \code{QueryPushshiftMeta}: Query pushshift's meta endpoint
+}}
+
 \examples{
 #Get u/spez's first ever comment
 QueryPushshift(author="spez",after=0,size=1)
 
 #See in which subreddits the word "gamer" is used the most
-GetPSData(q="Gamer",aggs="subreddit")
+QueryPushshift(q="Gamer",aggs="subreddit")
+QueryPushshiftMeta()$client_user_agent
 }

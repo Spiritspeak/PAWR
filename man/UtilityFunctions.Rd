@@ -34,10 +34,18 @@ now()
 \description{
 Utility Functions
 }
-\details{
-\code{refreshPAWR()} re-fetches the rate limit and parameter list from pushshift.io
-\code{list2df()} converts a list of lists (pushshift's preferred output format) to a data.frame
-\code{unevenrbind()} binds two data.frames together by row, even if their columns do not match
-\code{PSParams()} returns all available pushshift.io parameters for a given data type; defaults to all data types.
-\code{GetTotalQuerySize()} gives the total amount of content that matches the provided parameters
-}
+\section{Functions}{
+\itemize{
+\item \code{refreshPAWR}: re-fetches the rate limit and parameter list from pushshift.io
+
+\item \code{PSParams}: returns all available pushshift.io parameters for a given data type; defaults to all data types.
+
+\item \code{GetTotalQuerySize}: gives the total amount of content that matches the provided parameters
+
+\item \code{list2df}: converts a list of lists (pushshift's preferred output format) to a data.frame
+
+\item \code{unevenrbind}: binds two data.frames together by row, even if their columns do not match
+
+\item \code{now}: Get the timestamp of the current moment.
+}}
+

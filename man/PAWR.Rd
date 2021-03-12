@@ -9,6 +9,7 @@
 \itemize{
  \item{\code{PAWR.VerboseGet} designates whether the main data retrieval function should produce verbose output. Useful when debugging.}
  \item{\code{PAWR.VerbosePaginate} designates whether pagination functions should produce verbose output.}
+ \item{\code{PAWR.VerboseRateLimit} designates whether rate limit-induced pauses should be reported.}
  \item{\code{PAWR.UserAgent} is the useragent used by PAWR when querying pushshift.io.}
  \item{\code{PAWR.QuerySize} determines how many entries a pushshift query maximally returns.}
 }
